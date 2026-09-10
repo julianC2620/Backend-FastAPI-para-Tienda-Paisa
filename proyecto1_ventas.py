@@ -40,7 +40,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app/"],  # dirección del frontend
+    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app"],  # dirección del frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,3 +1,5 @@
+
+
 from fastapi import FastAPI, Depends
 from sqlalchemy import Column, Integer, String, Float, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
@@ -38,7 +40,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app"],  # dirección del frontend
+    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app/"],  # dirección del frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,19 +53,23 @@ def get_db():
     finally:
         db.close()
 
-
-
-@app.get("/items/", response_model=list[Item])
-def list_items(db: Session = Depends(get_db)):
-    items = db.query(ItemDB).all()
-    return items
-
+@app.post("/items/")
+def create_item(item: Item, db: Session = Depends(get_db)):
+    db_item = ItemDB(
+        name=item.name,
+        description=item.description,
+        price=item.price,
+        tags=",".join(item.tags)
+    )
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return {"message": f"Item {item.name} creado con éxito"}
 
 @app.get("/items/")
 def list_items(db: Session = Depends(get_db)):
     items = db.query(ItemDB).all()
     return items
-
 
 # IA simple: recomendar productos por etiquetas
 @app.get("/recommend/{tag}")
@@ -79,11 +85,6 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     db.delete(item)
     db.commit()
     return {"message": f"Item con id {item_id} eliminado con éxito"}
-
-@app.get("/")
-def read_root():
-    return {"message": "Backend Tienda Paisa activo"}
-
 
 if __name__ == "__main__":
     import uvicorn

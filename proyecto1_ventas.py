@@ -51,31 +51,8 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/items/")
-def create_item(item: Item, db: Session = Depends(get_db)):
-    db_item = ItemDB(
-        name=item.name,
-        description=item.description,
-        price=item.price,
-        tags=",".join(item.tags)
-    )
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return {"message": f"Item {item.name} creado con éxito"}
 
-from pydantic import BaseModel
 
-class Item(BaseModel):
-    id: int
-    name: str
-    price: float
-    tags: str | None = None
-
-    class Config:
-        orm_mode = True
-
-        
 @app.get("/items/", response_model=list[Item])
 def list_items(db: Session = Depends(get_db)):
     items = db.query(ItemDB).all()

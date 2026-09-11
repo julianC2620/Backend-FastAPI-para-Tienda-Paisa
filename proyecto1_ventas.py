@@ -1,51 +1,41 @@
 
 
 from fastapi import FastAPI, Depends
-from sqlalchemy import Column, Integer, String, Float, create_engine
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
-from typing import List
-from pydantic import BaseModel
+import os
 
+# 🔧 Configuración de base de datos
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./items.db")
 
-# Configuración DB
-DATABASE_URL = "sqlite:///./items.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-Base.metadata.create_all(bind=engine)
-
-# Modelo SQLAlchemy
+# 🧩 Modelo ORM
 class ItemDB(Base):
     __tablename__ = "items"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String, default="")
+    name = Column(String)
     price = Column(Float)
-    tags = Column(String)  # Guardamos las etiquetas como texto separado por comas
+    tags = Column(String)
 
 Base.metadata.create_all(bind=engine)
 
-# Modelo Pydantic
-class Item(BaseModel):
-    name: str
-    description: str = ""
-    price: float
-    tags: List[str] = []
-
-# FastAPI
+# 🚀 Inicialización de FastAPI
 app = FastAPI()
 
-from fastapi.middleware.cors import CORSMiddleware
-
+# 🌐 Configuración CORS (para Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app"],  # dirección del frontend
+    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app"],  # dominio de tu frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# 🧠 Dependencia de base de datos
 def get_db():
     db = SessionLocal()
     try:
@@ -53,43 +43,19 @@ def get_db():
     finally:
         db.close()
 
-@app.post("/items/")
-def create_item(item: Item, db: Session = Depends(get_db)):
-    db_item = ItemDB(
-        name=item.name,
-        description=item.description,
-        price=item.price,
-        tags=",".join(item.tags)
-    )
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return {"message": f"Item {item.name} creado con éxito"}
-
+# 📦 Endpoint para listar productos
 @app.get("/items/")
 def list_items(db: Session = Depends(get_db)):
     items = db.query(ItemDB).all()
     return items
 
-# IA simple: recomendar productos por etiquetas
-@app.get("/recommend/{tag}")
-def recommend(tag: str, db: Session = Depends(get_db)):
-    items = db.query(ItemDB).filter(ItemDB.tags.like(f"%{tag}%")).all()
-    return {"recommendations": [item.name for item in items]}
+# 🏠 Ruta raíz opcional
+@app.get("/")
+def read_root():
+    return {"message": "Backend Tienda Paisa activo"}
 
-@app.delete("/items/{item_id}")
-def delete_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(ItemDB).filter(ItemDB.id == item_id).first()
-    if not item:
-        return {"error": f"Item con id {item_id} no encontrado"}
-    db.delete(item)
-    db.commit()
-    return {"message": f"Item con id {item_id} eliminado con éxito"}
-
-import os
-
+# ⚙️ Configuración para local y Render
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))  # Render asigna el puerto
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run("proyecto1_ventas:app", host="0.0.0.0", port=port)
-

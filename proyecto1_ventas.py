@@ -86,6 +86,10 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Item con id {item_id} eliminado con éxito"}
 
+import os
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("proyecto1_ventas:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))  # Render asigna el puerto
+    uvicorn.run("proyecto1_ventas:app", host="0.0.0.0", port=port)
+

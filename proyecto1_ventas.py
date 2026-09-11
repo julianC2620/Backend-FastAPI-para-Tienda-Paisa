@@ -84,6 +84,11 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Item con id {item_id} eliminado con éxito"}
 
+@app.get("/")
+def read_root():
+    return {"message": "Backend Tienda Paisa activo"}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("proyecto1_ventas:app", host="127.0.0.1", port=8000, reload=True)

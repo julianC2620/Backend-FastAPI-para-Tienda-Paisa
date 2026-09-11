@@ -64,10 +64,29 @@ def create_item(item: Item, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return {"message": f"Item {item.name} creado con éxito"}
 
+from pydantic import BaseModel
+
+class Item(BaseModel):
+    id: int
+    name: str
+    price: float
+    tags: str | None = None
+
+    class Config:
+        orm_mode = True
+
+        
+@app.get("/items/", response_model=list[Item])
+def list_items(db: Session = Depends(get_db)):
+    items = db.query(ItemDB).all()
+    return items
+
+
 @app.get("/items/")
 def list_items(db: Session = Depends(get_db)):
     items = db.query(ItemDB).all()
     return items
+
 
 # IA simple: recomendar productos por etiquetas
 @app.get("/recommend/{tag}")

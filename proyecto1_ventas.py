@@ -5,7 +5,6 @@ from typing import List
 from pydantic import BaseModel
 
 
-
 # Configuración DB
 DATABASE_URL = "sqlite:///./items.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -13,7 +12,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 Base.metadata.create_all(bind=engine)
-
 
 # Modelo SQLAlchemy
 class ItemDB(Base):
@@ -45,9 +43,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-
 
 def get_db():
     db = SessionLocal()
@@ -89,8 +84,6 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": f"Item con id {item_id} eliminado con éxito"}
 
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("proyecto1_ventas:app", host="127.0.0.1", port=8000, reload=True)
-

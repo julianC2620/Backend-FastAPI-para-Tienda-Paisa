@@ -29,7 +29,7 @@ app = FastAPI()
 # 🌐 Configuración CORS (para Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://frontend-para-la-tienda-paisa.vercel.app"],  # dominio de tu frontend
+    allow_origins=["https://front3-eight.vercel.app"],  # dominio de tu frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
